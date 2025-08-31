@@ -14,11 +14,13 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
   late TextEditingController _email;
   late TextEditingController _password;
+  late TextEditingController _cpassword;
 
   @override
   void initState() {
     _email = TextEditingController();
     _password = TextEditingController();
+    _cpassword = TextEditingController();
     super.initState();
   }
 
@@ -26,6 +28,7 @@ class _RegisterState extends State<Register> {
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _cpassword.dispose();
     super.dispose();
   }
 
@@ -57,28 +60,36 @@ class _RegisterState extends State<Register> {
                 enableSuggestions: false,
                 decoration: InputDecoration(hintText: 'Enter your password'),
               ),
+              TextField(
+                controller: _cpassword,
+                obscureText: true,
+                enableSuggestions: false,
+                decoration: InputDecoration(
+                  hintText: 'Enter your password again',
+                ),
+              ),
               TextButton(
                 onPressed: () async {
+                  late final password;
+                  if (_password.text == _cpassword.text) {
+                    password = _password.text;
+                  } else {
+                    print('password didnot match');
+                  }
                   final email = _email.text;
-                  final password = _password.text;
                   try {
                     await FirebaseAuth.instance.createUserWithEmailAndPassword(
                       email: email,
                       password: password,
                     );
                   } on FirebaseAuthException catch (e) {
-                   if(e.code=='invalid-email')
-                   {
-                    print('Invalid email address');
-                   }
-                   else if(e.code =='weak-password')
-                   {
+                    if (e.code == 'invalid-email') {
+                      print('Invalid email address');
+                    } else if (e.code == 'weak-password') {
                       print('weak password');
-                   }
-                   else 
-                   {
-                    print('email already is use');
-                   }
+                    } else {
+                      print('email already is use');
+                    }
                   }
                 },
                 child: Text('Register'),
