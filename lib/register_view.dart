@@ -71,6 +71,7 @@ class _RegisterState extends State<Register> {
               TextButton(
                 onPressed: () async {
                   late final password;
+                  bool valid = true;
                   if (_password.text == _cpassword.text) {
                     password = _password.text;
                   } else {
@@ -84,6 +85,7 @@ class _RegisterState extends State<Register> {
                     );
                   } on FirebaseAuthException catch (e) {
                     if (e.code == 'invalid-email') {
+                      valid = false;
                       print('Invalid email address');
                     } else if (e.code == 'weak-password') {
                       print('weak password');
@@ -91,8 +93,23 @@ class _RegisterState extends State<Register> {
                       print('email already is use');
                     }
                   }
+
+                  if ((_password.text == _cpassword.text) && (valid)) {
+                    print("password did match");
+                    Navigator.of(
+                      context,
+                    ).pushNamedAndRemoveUntil('/login/', (route) => false);
+                  }
                 },
                 child: Text('Register'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(
+                    context,
+                  ).pushNamedAndRemoveUntil('/login/', (route) => false);
+                },
+                child: Text('Already registered? Login here!'),
               ),
             ],
           );
