@@ -1,4 +1,5 @@
 // ignore: depend_on_referenced_packages
+import 'package:basic_flutter/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -69,7 +70,7 @@ class _LoginViewState extends State<LoginView> {
                           password: password,
                         );
                     if (userCredential.user != null) {
-                      Navigator.of(context).pushNamedAndRemoveUntil('/home/', (route) => false);
+                      Navigator.of(context).pushNamedAndRemoveUntil(home, (route) => false);
                     }
                   } on FirebaseAuthException catch (e) {
                     if (e.code == 'invalid-credential') {
@@ -83,7 +84,7 @@ class _LoginViewState extends State<LoginView> {
                 onPressed: () {
                   Navigator.of(
                     context,
-                  ).pushNamedAndRemoveUntil('/register/', (route) => false);
+                  ).pushNamedAndRemoveUntil(register, (route) => false);
                 },
                 child: Text('Not registered yet? register here!'),
               ),

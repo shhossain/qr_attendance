@@ -1,4 +1,5 @@
 // ignore: depend_on_referenced_packages
+import 'package:basic_flutter/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -94,11 +95,13 @@ class _RegisterState extends State<Register> {
                     }
                   }
 
-                  if ((_password.text == _cpassword.text) && (valid)) {
+                  if ((_password.text == _cpassword.text) &&
+                      (valid) &&
+                      (_password.text.isNotEmpty)) {
                     print("password did match");
                     Navigator.of(
                       context,
-                    ).pushNamedAndRemoveUntil('/login/', (route) => false);
+                    ).pushNamedAndRemoveUntil(login, (route) => false);
                   }
                 },
                 child: Text('Register'),
@@ -107,7 +110,7 @@ class _RegisterState extends State<Register> {
                 onPressed: () {
                   Navigator.of(
                     context,
-                  ).pushNamedAndRemoveUntil('/login/', (route) => false);
+                  ).pushNamedAndRemoveUntil(login, (route) => false);
                 },
                 child: Text('Already registered? Login here!'),
               ),
