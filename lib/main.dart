@@ -1,10 +1,9 @@
-import 'dart:developer';
-
 import 'package:basic_flutter/email_verify.dart';
 import 'package:basic_flutter/firebase_options.dart';
 import 'package:basic_flutter/login_view.dart';
-import 'package:basic_flutter/register_view.dart';
+import 'package:basic_flutter/register_old.dart';
 import 'package:basic_flutter/routes.dart';
+import 'package:basic_flutter/register_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 // ignore: depend_on_referenced_packages
 import 'package:firebase_core/firebase_core.dart';
@@ -20,7 +19,7 @@ void main() {
           seedColor: const Color.fromARGB(255, 12, 26, 186),
         ),
       ),
-      home: const Homepage(),
+      home: Homepage(),
       routes: {
         login: (context) => const LoginView(),
         home: (context) => const Homepage(),
@@ -47,11 +46,11 @@ class Homepage extends StatelessWidget {
               if (value == 'login') {
                 Navigator.of(
                   context,
-                ).pushNamedAndRemoveUntil('/login/', (route) => true);
+                ).pushNamedAndRemoveUntil(login, (route) => false);
               } else if (value == 'register') {
                 Navigator.of(
                   context,
-                ).pushNamedAndRemoveUntil(login, (route) => true);
+                ).pushNamedAndRemoveUntil(register, (route) => false);
               } else if (value == 'logout') {
                 final logout = await showLogout(context);
                 devtools.log(logout.toString());
@@ -86,7 +85,7 @@ class Homepage extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(
                         context,
-                      ).pushNamedAndRemoveUntil('/e_verify/', (route) => false);
+                      ).pushNamedAndRemoveUntil(verify, (route) => false);
                     },
                     child: const Text("Go to Email Verification"),
                   ),
@@ -118,7 +117,7 @@ Future<bool> showLogout(BuildContext context) {
             onPressed: () {
               Navigator.of(
                 context,
-              ).pushNamedAndRemoveUntil('/login/', (route) => true);
+              ).pushNamedAndRemoveUntil('/login/', (route) => false);
             },
             child: Text('Log out'),
           ),
