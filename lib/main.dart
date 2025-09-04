@@ -1,9 +1,9 @@
 import 'package:basic_flutter/email_verify.dart';
 import 'package:basic_flutter/firebase_options.dart';
 import 'package:basic_flutter/login_view.dart';
-import 'package:basic_flutter/register_old.dart';
-import 'package:basic_flutter/routes.dart';
 import 'package:basic_flutter/register_page.dart';
+import 'package:basic_flutter/routes.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 // ignore: depend_on_referenced_packages
 import 'package:firebase_core/firebase_core.dart';
@@ -24,7 +24,7 @@ void main() {
         login: (context) => const LoginView(),
         home: (context) => const Homepage(),
         register: (context) => const Register(),
-        '/e_verify/': (context) => const VerifyEmail(),
+        verify: (context) => const VerifyEmail(),
       },
     ),
   );
@@ -32,6 +32,11 @@ void main() {
 
 class Homepage extends StatelessWidget {
   const Homepage({super.key});
+
+  Future<DocumentSnapshot<Map<String, dynamic>>> getUserData() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    return FirebaseFirestore.instance.collection("users").doc(uid).get();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,9 +63,9 @@ class Homepage extends StatelessWidget {
             },
             itemBuilder: (context) {
               return [
-                PopupMenuItem(value: 'login', child: Text('Login')),
-                PopupMenuItem(value: 'register', child: Text('Register')),
-                PopupMenuItem(value: 'logout', child: Text('Log out')),
+                const PopupMenuItem(value: 'login', child: Text('Login')),
+                const PopupMenuItem(value: 'register', child: Text('Register')),
+                const PopupMenuItem(value: 'logout', child: Text('Log out')),
               ];
             },
           ),
@@ -75,7 +80,45 @@ class Homepage extends StatelessWidget {
             final user = FirebaseAuth.instance.currentUser;
 
             if (user?.emailVerified ?? false) {
-              return Text('verified');
+              // ✅ Fetch Firestore user data
+              return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                future: getUserData(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (!snapshot.hasData || !snapshot.data!.exists) {
+                    return const Center(child: Text("No user data found"));
+                  }
+
+                  final userData = snapshot.data!.data()!;
+                  final name = userData['name'] ?? '';
+                  final userType = userData['userType'] ?? '';
+                  final section = userData['section'] ?? '';
+
+                  return Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Welcome, $name 👋",
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text("User Type: $userType"),
+                        if (userType == "Student") 
+                              Text("Section: $section"),
+                        if (userType == "Teacher")
+                          Text("Designation: $section"),
+                      ],
+                    ),
+                  );
+                },
+              );
             } else {
               return Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -92,12 +135,8 @@ class Homepage extends StatelessWidget {
                 ],
               );
             }
-
-            // Navigator.of(context).push(
-            //   MaterialPageRoute(builder: (context) => const VerifyEmail()),
-            // );
           } else {
-            return Text('Loading');
+            return const Center(child: Text('Loading...'));
           }
         },
       ),
@@ -110,8 +149,8 @@ Future<bool> showLogout(BuildContext context) {
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: Text('Sign out'),
-        content: Text('Are you sure?'),
+        title: const Text('Sign out'),
+        content: const Text('Are you sure?'),
         actions: [
           TextButton(
             onPressed: () {
@@ -119,13 +158,13 @@ Future<bool> showLogout(BuildContext context) {
                 context,
               ).pushNamedAndRemoveUntil('/login/', (route) => false);
             },
-            child: Text('Log out'),
+            child: const Text('Log out'),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop(false);
             },
-            child: Text('cancel'),
+            child: const Text('Cancel'),
           ),
         ],
       );

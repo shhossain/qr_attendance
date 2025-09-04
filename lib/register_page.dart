@@ -4,6 +4,7 @@ import 'package:basic_flutter/routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -18,7 +19,6 @@ class _RegisterState extends State<Register> {
 
   late TextEditingController _name;
   late TextEditingController _section;
-  late TextEditingController _designation;
   late TextEditingController _email;
   late TextEditingController _password;
   late TextEditingController _cpassword;
@@ -28,7 +28,6 @@ class _RegisterState extends State<Register> {
   void initState() {
     _name = TextEditingController();
     _section = TextEditingController();
-    _designation = TextEditingController();
     _email = TextEditingController();
     _password = TextEditingController();
     _cpassword = TextEditingController();
@@ -39,7 +38,6 @@ class _RegisterState extends State<Register> {
   void dispose() {
     _name.dispose();
     _section.dispose();
-    _designation.dispose();
     _email.dispose();
     _password.dispose();
     _cpassword.dispose();
@@ -69,7 +67,9 @@ class _RegisterState extends State<Register> {
         elevation: 0,
       ),
       body: FutureBuilder(
-        future: Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+        future: Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        ),
         builder: (context, asyncSnapshot) {
           return SafeArea(
             child: SingleChildScrollView(
@@ -123,7 +123,7 @@ class _RegisterState extends State<Register> {
                     ),
                   ),
                   const SizedBox(height: 30),
-          
+
                   // Name
                   TextField(
                     controller: _name,
@@ -131,7 +131,7 @@ class _RegisterState extends State<Register> {
                     decoration: inputDecoration('Enter your Name'),
                   ),
                   const SizedBox(height: 16),
-          
+
                   // Email
                   TextField(
                     controller: _email,
@@ -140,7 +140,7 @@ class _RegisterState extends State<Register> {
                     decoration: inputDecoration('Enter your Email'),
                   ),
                   const SizedBox(height: 16),
-          
+
                   // Password
                   TextField(
                     controller: _password,
@@ -149,7 +149,7 @@ class _RegisterState extends State<Register> {
                     decoration: inputDecoration('Enter your Password'),
                   ),
                   const SizedBox(height: 16),
-          
+
                   // Confirm Password
                   TextField(
                     controller: _cpassword,
@@ -158,7 +158,7 @@ class _RegisterState extends State<Register> {
                     decoration: inputDecoration('Confirm Password'),
                   ),
                   const SizedBox(height: 16),
-          
+
                   // Conditional TextField: Section or Designation
                   if (userType == "Student")
                     TextField(
@@ -168,37 +168,43 @@ class _RegisterState extends State<Register> {
                     )
                   else
                     TextField(
-                      controller: _designation,
+                      controller: _section,
                       enableSuggestions: true,
                       decoration: inputDecoration('Enter your Designation'),
                     ),
                   const SizedBox(height: 30),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _agreeTerms,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            _agreeTerms = value ?? false;
-                          });
-                        },
-                      ),
-                      const Expanded(
-                        child: Text(
-                          "University Related",
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-          
+
+                  // Row(
+                  //   children: [
+                  //     Checkbox(
+                  //       value: _agreeTerms,
+                  //       onChanged: (bool? value) {
+                  //         setState(() {
+                  //           _agreeTerms = value ?? false;
+                  //         });
+                  //       },
+                  //     ),
+                  //     const Expanded(
+                  //       child: Text(
+                  //         "University Related",
+                  //         style: TextStyle(fontSize: 14),
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                  // const SizedBox(height: 16),
+
                   // Register Button
                   SizedBox(
                     height: 50,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                        foregroundColor: const Color.fromARGB(
+                          255,
+                          255,
+                          255,
+                          255,
+                        ),
                         backgroundColor: const Color.fromARGB(255, 0, 161, 115),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -207,53 +213,64 @@ class _RegisterState extends State<Register> {
                       onPressed: () async {
                         late final String password;
                         bool valid = true;
-          
+
                         if (_password.text == _cpassword.text) {
                           password = _password.text;
                         } else {
                           await showError(context, 'Passwords do not match');
                           return;
                         }
-          
+
                         final email = _email.text;
                         try {
-                          await FirebaseAuth.instance
+                          final userCredential = await FirebaseAuth
+                              .instance
                               .createUserWithEmailAndPassword(
                                 email: email,
                                 password: password,
                               );
-                        } on FirebaseAuthException catch (e) {
-                          if (!mounted) return;
-                          String message;
-          
+
+                          String uid = userCredential.user!.uid;
+
+                          await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(uid)
+                              .set({
+                                'name': _name.text,
+                                'userType': userType, // "Student" or "Teacher"
+                                'section': _section.text,
+                                'createdAt': FieldValue.serverTimestamp(),
+                              });
+                        }
+                         on FirebaseAuthException catch (e) {
                           if (e.code == 'invalid-email') {
                             valid = false;
-                            message = 'Invalid Email Address';
+                            await showError(context, 'Invalid Email Address');
                           } else if (e.code == 'weak-password') {
-                            message = 'Weak password';
-                          } else {
-                            message = 'Register Failed';
                             valid = false;
+                            await showError(context, 'Weak password');
+                          } else {
+                            print('error is');
+                            print(e.runtimeType);
+                            await showError(context, 'Registration Failed');
                           }
-          
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text(message)));
                         }
-          
+
                         if ((_password.text == _cpassword.text) &&
-                            valid &&
-                            _password.text.isNotEmpty) {
+                            ((valid == true) && (_password.text.isNotEmpty))) {
                           Navigator.of(
                             context,
                           ).pushNamedAndRemoveUntil(login, (route) => false);
                         }
                       },
-                      child: const Text('Register', style: TextStyle(fontSize: 18)),
+                      child: const Text(
+                        'Register',
+                        style: TextStyle(fontSize: 18),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
-          
+
                   // Login Navigation
                   Center(
                     child: TextButton(
@@ -272,7 +289,7 @@ class _RegisterState extends State<Register> {
               ),
             ),
           );
-        }
+        },
       ),
     );
   }
