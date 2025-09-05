@@ -1,17 +1,19 @@
 // ignore: depend_on_referenced_packages
+import 'package:basic_flutter/errordialog.dart';
+import 'package:basic_flutter/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 
-class Register extends StatefulWidget {
-  const Register({super.key});
+class Register1 extends StatefulWidget {
+  const Register1({super.key});
 
   @override
-  State<Register> createState() => _RegisterState();
+  State<Register1> createState() => _Register1State();
 }
 
-class _RegisterState extends State<Register> {
+class _Register1State extends State<Register1> {
   late TextEditingController _email;
   late TextEditingController _password;
   late TextEditingController _cpassword;
@@ -35,9 +37,9 @@ class _RegisterState extends State<Register> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 196, 213, 158),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 89, 104, 240),
+        backgroundColor: const Color.fromARGB(255, 0, 161, 115),
         title: const Text('Register'),
       ),
 
@@ -75,7 +77,7 @@ class _RegisterState extends State<Register> {
                   if (_password.text == _cpassword.text) {
                     password = _password.text;
                   } else {
-                    print('password didnot match');
+                    await showError(context, 'Password do not match');
                   }
                   final email = _email.text;
                   try {
@@ -86,19 +88,21 @@ class _RegisterState extends State<Register> {
                   } on FirebaseAuthException catch (e) {
                     if (e.code == 'invalid-email') {
                       valid = false;
-                      print('Invalid email address');
+                      await showError(context, 'Invalid Email Address');
                     } else if (e.code == 'weak-password') {
-                      print('weak password');
+                      await showError(context, 'Weak password');
                     } else {
-                      print('email already is use');
+                      await showError(context, 'Email Already in use');
+                      valid =false;
                     }
                   }
 
-                  if ((_password.text == _cpassword.text) && (valid)) {
-                    print("password did match");
+                  if ((_password.text == _cpassword.text) &&
+                      (valid) &&
+                      (_password.text.isNotEmpty)) {
                     Navigator.of(
                       context,
-                    ).pushNamedAndRemoveUntil('/login/', (route) => false);
+                    ).pushNamedAndRemoveUntil(login, (route) => false);
                   }
                 },
                 child: Text('Register'),
@@ -107,7 +111,7 @@ class _RegisterState extends State<Register> {
                 onPressed: () {
                   Navigator.of(
                     context,
-                  ).pushNamedAndRemoveUntil('/login/', (route) => false);
+                  ).pushNamedAndRemoveUntil(login, (route) => false);
                 },
                 child: Text('Already registered? Login here!'),
               ),
