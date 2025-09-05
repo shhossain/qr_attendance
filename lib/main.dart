@@ -1,4 +1,3 @@
-import 'package:basic_flutter/email_verify.dart';
 import 'package:basic_flutter/firebase_options.dart';
 import 'package:basic_flutter/login_view.dart';
 import 'package:basic_flutter/register_page.dart';
@@ -16,15 +15,14 @@ void main() {
       title: 'Naimul',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 12, 26, 186),
+          seedColor: const Color.fromARGB(255, 19, 2, 99),
         ),
       ),
-      home: Homepage(),
+      home: LoginView(),
       routes: {
         login: (context) => const LoginView(),
         home: (context) => const Homepage(),
         register: (context) => const Register(),
-        verify: (context) => const VerifyEmail(),
       },
     ),
   );
@@ -79,8 +77,8 @@ class Homepage extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.done) {
             final user = FirebaseAuth.instance.currentUser;
 
+            // Fetch Firestore user data
             if (user?.emailVerified ?? false) {
-              // ✅ Fetch Firestore user data
               return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                 future: getUserData(),
                 builder: (context, snapshot) {
@@ -93,8 +91,10 @@ class Homepage extends StatelessWidget {
 
                   final userData = snapshot.data!.data()!;
                   final name = userData['name'] ?? '';
+                  final studentid = userData['studentId'] ?? '';
                   final userType = userData['userType'] ?? '';
                   final section = userData['section'] ?? '';
+                  final verifiedStudent = userData['verified'] ?? '';
 
                   return Padding(
                     padding: const EdgeInsets.all(20),
@@ -102,42 +102,35 @@ class Homepage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Welcome, $name 👋",
+                          "Welcome, $name ",
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 10),
-                        Text("User Type: $userType"),
-                        if (userType == "Student") 
-                              Text("Section: $section"),
+                        Text('student Id $studentid'),
+
+                        if (userType == "Student") Text("Section: $section"),
                         if (userType == "Teacher")
                           Text("Designation: $section"),
+                        
+                        if(verifiedStudent)
+                        Text('Verified profile')
+                        else 
+                        Text('Not verified')
                       ],
                     ),
                   );
                 },
               );
             } else {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  const Text("Please verify your email"),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(
-                        context,
-                      ).pushNamedAndRemoveUntil(verify, (route) => false);
-                    },
-                    child: const Text("Go to Email Verification"),
-                  ),
-                ],
-              );
+              return const Center(child: Text("Please verify your email"));
             }
-          } else {
-            return const Center(child: Text('Loading...'));
           }
+          return const Center(
+            child: CircularProgressIndicator(),
+          ); // loading screen
         },
       ),
     );

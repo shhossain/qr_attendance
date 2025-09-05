@@ -1,6 +1,8 @@
+import 'package:basic_flutter/email_verify.dart';
 import 'package:basic_flutter/errordialog.dart';
 import 'package:basic_flutter/firebase_options.dart';
 import 'package:basic_flutter/routes.dart';
+import 'package:basic_flutter/uni_related.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +24,11 @@ class _RegisterState extends State<Register> {
   late TextEditingController _email;
   late TextEditingController _password;
   late TextEditingController _cpassword;
-  bool _agreeTerms = false;
+
+  bool? _uniVerified = false;
+  bool _emailVerified = false;
+  String? _studentId;
+  String? _uid;
 
   @override
   void initState() {
@@ -132,12 +138,54 @@ class _RegisterState extends State<Register> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Email
+                  // Email with Verify Button inside
                   TextField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
                     enableSuggestions: false,
-                    decoration: inputDecoration('Enter your Email'),
+                    decoration: inputDecoration('Enter your Email').copyWith(
+                      suffixIcon: StatefulBuilder(
+                        builder: (context, setStateSB) {
+                          return TextButton(
+                            onPressed: () async {
+                              final result = await Navigator.of(context)
+                                  .push<Map<String, dynamic>>(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          VerifyEmail(email: _email.text),
+                                    ),
+                                  );
+
+                              if (result != null) {
+                                setState(() {
+                                  _emailVerified = result['verified'];
+                                  _uid = result['uid'];
+                                });
+                                setStateSB(() {}); // update button state
+                              }
+                            },
+                            child: Text(
+                              _emailVerified ? 'Verified' : 'Verify',
+                              style: TextStyle(
+                                color: _emailVerified
+                                    ? const Color.fromARGB(
+                                        255,
+                                        3,
+                                        100,
+                                        19,
+                                      ) // Green tone
+                                    : const Color.fromARGB(
+                                        255,
+                                        160,
+                                        0,
+                                        0,
+                                      ), // Red tone
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -146,7 +194,12 @@ class _RegisterState extends State<Register> {
                     controller: _password,
                     obscureText: true,
                     enableSuggestions: false,
-                    decoration: inputDecoration('Enter your Password'),
+                    decoration: inputDecoration(
+                      _emailVerified
+                          ? 'Enter your Password'
+                          : 'Verify your email first',
+                    ),
+                    enabled: _emailVerified,
                   ),
                   const SizedBox(height: 16),
 
@@ -155,11 +208,16 @@ class _RegisterState extends State<Register> {
                     controller: _cpassword,
                     obscureText: true,
                     enableSuggestions: false,
-                    decoration: inputDecoration('Confirm Password'),
+                    decoration: inputDecoration(
+                      _emailVerified
+                          ? 'Enter your Password'
+                          : 'Verify your email first',
+                    ),
+                    enabled: _emailVerified,
                   ),
                   const SizedBox(height: 16),
 
-                  // Conditional TextField: Section or Designation
+                  // Section / Designation
                   if (userType == "Student")
                     TextField(
                       controller: _section,
@@ -174,94 +232,110 @@ class _RegisterState extends State<Register> {
                     ),
                   const SizedBox(height: 30),
 
-                  // Row(
-                  //   children: [
-                  //     Checkbox(
-                  //       value: _agreeTerms,
-                  //       onChanged: (bool? value) {
-                  //         setState(() {
-                  //           _agreeTerms = value ?? false;
-                  //         });
-                  //       },
-                  //     ),
-                  //     const Expanded(
-                  //       child: Text(
-                  //         "University Related",
-                  //         style: TextStyle(fontSize: 14),
-                  //       ),
-                  //     ),
-                  //   ],
-                  // ),
-                  // const SizedBox(height: 16),
+                  // University Verification
+                  Text(
+                    ' *Are you registering as part of a university program?',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: () async {
+                        final result = await Navigator.of(context)
+                            .push<Map<String, dynamic>>(
+                              MaterialPageRoute(
+                                builder: (context) => const UniVerify(),
+                              ),
+                            );
+                        if (result != null) {
+                          setState(() {
+                            _uniVerified = result['verified'];
+                            _studentId = result['sid'];
+                          });
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          75,
+                          173,
+                          137,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 5,
+                        ),
+                        minimumSize: const Size(0, 0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Verify Profile',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
                   // Register Button
                   SizedBox(
                     height: 50,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: const Color.fromARGB(
-                          255,
-                          255,
-                          255,
-                          255,
-                        ),
+                        foregroundColor: Colors.white,
                         backgroundColor: const Color.fromARGB(255, 0, 161, 115),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       onPressed: () async {
-                        late final String password;
-                        bool valid = true;
+                        if (!_emailVerified) {
+                          await showError(
+                            context,
+                            "Please verify your email before registering",
+                          );
+                          return;
+                        }
 
-                        if (_password.text == _cpassword.text) {
-                          password = _password.text;
-                        } else {
+                        if (_password.text != _cpassword.text) {
                           await showError(context, 'Passwords do not match');
                           return;
                         }
 
-                        final email = _email.text;
                         try {
-                          final userCredential = await FirebaseAuth
-                              .instance
-                              .createUserWithEmailAndPassword(
-                                email: email,
-                                password: password,
-                              );
-
-                          String uid = userCredential.user!.uid;
+                          final uid = _uid;
+                          if (uid == null) throw Exception('UID missing');
 
                           await FirebaseFirestore.instance
                               .collection('users')
                               .doc(uid)
                               .set({
                                 'name': _name.text,
-                                'userType': userType, // "Student" or "Teacher"
+                                'email': _email.text,
+                                'studentId': _studentId,
+                                'userType': userType,
                                 'section': _section.text,
+                                'verified': _uniVerified,
                                 'createdAt': FieldValue.serverTimestamp(),
                               });
-                        }
-                         on FirebaseAuthException catch (e) {
-                          if (e.code == 'invalid-email') {
-                            valid = false;
-                            await showError(context, 'Invalid Email Address');
-                          } else if (e.code == 'weak-password') {
-                            valid = false;
-                            await showError(context, 'Weak password');
-                          } else {
-                            print('error is');
-                            print(e.runtimeType);
-                            await showError(context, 'Registration Failed');
-                          }
+                        } catch (e) {
+                          await showError(context, 'Registration Failed');
+                          return;
                         }
 
-                        if ((_password.text == _cpassword.text) &&
-                            ((valid == true) && (_password.text.isNotEmpty))) {
-                          Navigator.of(
-                            context,
-                          ).pushNamedAndRemoveUntil(login, (route) => false);
-                        }
+                        Navigator.of(
+                          context,
+                        ).pushNamedAndRemoveUntil(login, (route) => false);
                       },
                       child: const Text(
                         'Register',
