@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-const String kBaseUrl = "http://10.0.2.2:5000";
+const String kBaseUrl = "https://scrap-2d1g.onrender.com";
 
 class UniVerify extends StatefulWidget {
   const UniVerify({super.key});
@@ -121,10 +121,7 @@ class _UniVerifyState extends State<UniVerify> {
         backgroundColor: const Color.fromARGB(255, 0, 161, 115),
         title: const Text(
           "University Verification",
-          style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0),
-            fontSize: 18,
-          ),
+          style: TextStyle(color: Color.fromARGB(255, 0, 0, 0), fontSize: 18),
         ),
       ),
       body: SafeArea(
@@ -189,7 +186,6 @@ class _UniVerifyState extends State<UniVerify> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                   
                   ],
                 ),
               ),
@@ -199,4 +195,4 @@ class _UniVerifyState extends State<UniVerify> {
       ),
     );
   }
-} 
+}
