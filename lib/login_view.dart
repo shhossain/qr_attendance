@@ -58,98 +58,170 @@ class _LoginViewState extends State<LoginView> {
             options: DefaultFirebaseOptions.currentPlatform,
           ),
           builder: (context, snapshot) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Top Image
-                  Container(
-                    height: 200,
-                    margin: const EdgeInsets.only(bottom: 24),
-                    child: Image.asset(
-                      'assets/Logo.png', // replace with your asset
-                      fit: BoxFit.contain,
+            return Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 24,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Top Logo
+                        Container(
+                          height: 200,
+                          margin: const EdgeInsets.only(bottom: 24),
+                          child: Image.asset(
+                            'assets/Logo.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+
+                        // Email Field
+                        TextField(
+                          controller: _email,
+                          keyboardType: TextInputType.emailAddress,
+                          enableSuggestions: false,
+                          decoration: inputDecoration('Enter your email'),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Password Field
+                        TextField(
+                          controller: _password,
+                          obscureText: true,
+                          enableSuggestions: false,
+                          decoration: inputDecoration('Enter your password'),
+                        ),
+                        const SizedBox(height: 10),
+                        
+                        //forgot password 
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () async {
+                              if (_email.text.isNotEmpty) {
+                                await FirebaseAuth.instance
+                                    .sendPasswordResetEmail(
+                                      email: _email.text.trim(),
+                                    );
+                                if (!mounted) return;
+                                await showError(
+                                  context,
+                                  "Password reset email sent!",
+                                );
+                              } else {
+                                await showError(
+                                  context,
+                                  "Please enter your email first",
+                                );
+                              }
+                            },
+                            child: const Text(
+                              "Forgot Password?",
+                              style: TextStyle(color: Colors.redAccent),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Login Button
+                        SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(
+                                255,
+                                0,
+                                161,
+                                115,
+                              ),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () async {
+                              final email = _email.text.trim();
+                              final password = _password.text.trim();
+
+                              try {
+                                final userCredential = await FirebaseAuth
+                                    .instance
+                                    .signInWithEmailAndPassword(
+                                      email: email,
+                                      password: password,
+                                    );
+
+                                if (userCredential.user != null) {
+                                  Navigator.of(context).pushNamedAndRemoveUntil(
+                                    home,
+                                    (route) => false,
+                                  );
+                                }
+                              } on FirebaseAuthException catch (e) {
+                                String message = 'Login failed';
+                                if (e.code == 'invalid-credential') {
+                                  message = 'Incorrect Username or Password';
+                                }
+                                if (!mounted) return;
+                                await showError(context, message);
+                              }
+                            },
+                            child: const Text(
+                              'Login',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
                     ),
                   ),
+                ),
 
-                  // Email Field
-                  TextField(
-                    controller: _email,
-                    keyboardType: TextInputType.emailAddress,
-                    enableSuggestions: false,
-                    decoration: inputDecoration('Enter your email'),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: 32,
                   ),
-                  const SizedBox(height: 16),
-
-                  // Password Field
-                  TextField(
-                    controller: _password,
-                    obscureText: true,
-                    enableSuggestions: false,
-                    decoration: inputDecoration('Enter your password'),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // Login Button
-                  SizedBox(
+                  child: SizedBox(
                     height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 0, 161, 115),
-                        foregroundColor: Colors.white,
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(
+                          color: Color.fromARGB(255, 0, 161, 115),
+                          width: 2,
+                        ),
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: Colors.black,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () async {
-                        final email = _email.text;
-                        final password = _password.text;
-
-                        try {
-                          final userCredential = await FirebaseAuth.instance
-                              .signInWithEmailAndPassword(
-                            email: email,
-                            password: password,
-                          );
-
-                          if (userCredential.user != null) {
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                                home, (route) => false);
-                          }
-                        } on FirebaseAuthException catch (e) {
-                          String message = 'Login failed';
-                          if (e.code == 'invalid-credential') {
-                            message = 'Incorrect Username or Password';
-                          }
-                          if (!mounted) return;
-                          await showError(context, message);
-                        }
-                      },
-                      child: const Text(
-                        'Login',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Register Navigation
-                  Center(
-                    child: TextButton(
                       onPressed: () {
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                            register, (route) => false);
+                        Navigator.of(
+                          context,
+                        ).pushNamedAndRemoveUntil(register, (route) => false);
                       },
                       child: const Text(
-                        'Not registered yet? Register here!',
-                        style: TextStyle(color: Colors.black54),
+                        "Create New Account",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           },
         ),
