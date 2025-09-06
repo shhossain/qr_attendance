@@ -29,126 +29,117 @@ class StudentProfile extends StatelessWidget {
         ),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            final user = FirebaseAuth.instance.currentUser;
+            return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              future: getUserData(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || !snapshot.data!.exists) {
+                  return const Center(child: Text("No user data found"));
+                }
 
-            if (user?.emailVerified ?? false) {
-              return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                future: getUserData(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (!snapshot.hasData || !snapshot.data!.exists) {
-                    return const Center(child: Text("No user data found"));
-                  }
+                final userData = snapshot.data!.data()!;
+                final name = userData['name'] ?? '';
+                final studentid = userData['studentId'] ?? '';
+                final section = userData['section'] ?? '';
+                final verifiedStudent = userData['verified'] ?? false;
 
-                  final userData = snapshot.data!.data()!;
-                  final name = userData['name'] ?? '';
-                  final studentid = userData['studentId'] ?? '';
-                  final section = userData['section'] ?? '';
-                  final verifiedStudent = userData['verified'] ?? false;
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // --- Profile Card ---
+                      ProfileCard(
+                        name: name,
+                        studentId: studentid,
+                        section: section,
+                        verified: verifiedStudent,
+                      ),
 
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // --- Profile Card ---
-                        
-                        ProfileCard(
-                          name: name,
-                          studentId: studentid,
-                          section: section,
-                          verified: verifiedStudent,
-                        ),
+                      const SizedBox(height: 20),
 
-                        const SizedBox(height: 20),
-
-                        // --- Buttons Row ---
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  // TODO: Add class logic
-                                },
-                                icon: const Icon(Icons.add),
-                                label: const Text("Add Class"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color.fromARGB(
-                                    255,
-                                    0,
-                                    161,
-                                    115,
-                                  ),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                      // --- Buttons Row ---
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                // TODO: Add class logic
+                              },
+                              icon: const Icon(Icons.add),
+                              label: const Text("Add Class"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(
+                                  255,
+                                  0,
+                                  161,
+                                  115,
+                                ),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  // TODO: Open QR scanner
-                                },
-                                icon: const Icon(Icons.qr_code_scanner),
-                                label: const Text("Scan QR"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.deepPurple,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                // TODO: Open QR scanner
+                              },
+                              icon: const Icon(Icons.qr_code_scanner),
+                              label: const Text("Scan QR"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepPurple,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // --- Classes List ---
-                        const Text(
-                          "Your Classes",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
                           ),
-                        ),
-                        const SizedBox(height: 12),
+                        ],
+                      ),
 
-                        // Example Class Card
-                        Card(
-                          elevation: 3,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ListTile(
-                            title: const Text(
-                              "CSE 101 - Computer Fundamentals",
-                            ),
-                            subtitle: const Text("Section A"),
-                            trailing: const Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                            ),
-                            onTap: () {
-                              // TODO: Navigate to class details
-                            },
-                          ),
+                      const SizedBox(height: 20),
+
+                      // --- Classes List ---
+                      const Text(
+                        "Your Classes",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            } else {
-              return const Center(child: Text("Please verify your email"));
-            }
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Example Class Card
+                      Card(
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ListTile(
+                          title: const Text("CSE 101 - Computer Fundamentals"),
+                          subtitle: const Text("Section A"),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                          ),
+                          onTap: () {
+                            // TODO: Navigate to class details
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
           }
           return const Center(child: CircularProgressIndicator());
         },

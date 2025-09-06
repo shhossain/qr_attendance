@@ -18,9 +18,7 @@ class ProfileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: const EdgeInsets.symmetric(vertical: 12),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -30,30 +28,21 @@ class ProfileCard extends StatelessWidget {
             // Name
             Text(
               name,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
 
             // Student ID
             Text(
               "ID: $studentId",
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black87,
-              ),
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
             ),
             const SizedBox(height: 4),
 
             // Section
             Text(
               "Section: $section",
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black87,
-              ),
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
             ),
             const SizedBox(height: 12),
 
@@ -66,7 +55,7 @@ class ProfileCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  verified ? "Profile Verified" : "Not Verified",
+                  verified ? "University Verified" : "University not verified",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
