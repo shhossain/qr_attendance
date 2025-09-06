@@ -1,3 +1,4 @@
+import 'package:basic_flutter/fatch_data/user_type.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -5,16 +6,17 @@ import 'package:basic_flutter/errordialog.dart';
 import 'package:basic_flutter/routes.dart';
 import 'firebase_options.dart';
 
-class LoginView extends StatefulWidget {
-  const LoginView({super.key});
+class Login extends StatefulWidget {
+  const Login({super.key});
 
   @override
-  State<LoginView> createState() => _LoginViewState();
+  State<Login> createState() => _LoginState();
 }
 
-class _LoginViewState extends State<LoginView> {
+class _LoginState extends State<Login> {
   late TextEditingController _email;
   late TextEditingController _password;
+  late String userType;
 
   @override
   void initState() {
@@ -96,8 +98,8 @@ class _LoginViewState extends State<LoginView> {
                           decoration: inputDecoration('Enter your password'),
                         ),
                         const SizedBox(height: 10),
-                        
-                        //forgot password 
+
+                        //forgot password
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
@@ -148,6 +150,8 @@ class _LoginViewState extends State<LoginView> {
                               final password = _password.text.trim();
 
                               try {
+                                userType = await getUserType();
+
                                 final userCredential = await FirebaseAuth
                                     .instance
                                     .signInWithEmailAndPassword(
@@ -156,10 +160,22 @@ class _LoginViewState extends State<LoginView> {
                                     );
 
                                 if (userCredential.user != null) {
-                                  Navigator.of(context).pushNamedAndRemoveUntil(
-                                    home,
-                                    (route) => false,
-                                  );
+                                  if (userType == 'Student') {
+                                    Navigator.of(
+                                      context,
+                                    ).pushNamedAndRemoveUntil(
+                                      student,
+                                      (route) => false,
+                                    );
+                                  }
+                                  else {
+                                    Navigator.of(
+                                      context,
+                                    ).pushNamedAndRemoveUntil(
+                                      teacher,
+                                      (route) => false,
+                                    );
+                                  }
                                 }
                               } on FirebaseAuthException catch (e) {
                                 String message = 'Login failed';
