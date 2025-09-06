@@ -14,7 +14,7 @@ void main() {
           seedColor: const Color.fromARGB(255, 19, 2, 99),
         ),
       ),
-      home: StudentProfile(),
+      home: TeacherProfile(),
       routes: {
         login: (context) => const Login(),
         register: (context) => const Register(),

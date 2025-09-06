@@ -1,4 +1,4 @@
-import 'package:basic_flutter/fatch_data/user_type.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +16,7 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   late TextEditingController _email;
   late TextEditingController _password;
-  late String userType;
+  late String typeOfUser;
 
   @override
   void initState() {
@@ -150,8 +150,6 @@ class _LoginState extends State<Login> {
                               final password = _password.text.trim();
 
                               try {
-                                userType = await getUserType();
-
                                 final userCredential = await FirebaseAuth
                                     .instance
                                     .signInWithEmailAndPassword(
@@ -159,20 +157,35 @@ class _LoginState extends State<Login> {
                                       password: password,
                                     );
 
-                                if (userCredential.user != null) {
-                                  if (userType == 'Student') {
+                                if (userCredential.user != null &&
+                                    userCredential.user!.emailVerified) {
+                                  // Fetch userType from Firestore
+                                  final doc = await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(userCredential.user!.uid)
+                                      .get();
+
+                                  typeOfUser = doc['userType'];
+
+                                  if (typeOfUser == 'Student') {
                                     Navigator.of(
                                       context,
                                     ).pushNamedAndRemoveUntil(
                                       student,
                                       (route) => false,
                                     );
-                                  }
-                                  else {
+                                  } else if (typeOfUser == 'Teacher') {
                                     Navigator.of(
                                       context,
                                     ).pushNamedAndRemoveUntil(
                                       teacher,
+                                      (route) => false,
+                                    );
+                                  } else {
+                                    Navigator.of(
+                                      context,
+                                    ).pushNamedAndRemoveUntil(
+                                      student,
                                       (route) => false,
                                     );
                                   }

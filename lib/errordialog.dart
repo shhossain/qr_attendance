@@ -5,7 +5,7 @@ Future<void> showError(BuildContext context, String text) {
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: Text('Error'),
+        title: Text('Notice'),
         content: Text(text),
         actions: [
           TextButton(

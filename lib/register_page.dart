@@ -2,7 +2,7 @@ import 'package:basic_flutter/email_verify.dart';
 import 'package:basic_flutter/errordialog.dart';
 import 'package:basic_flutter/firebase_options.dart';
 import 'package:basic_flutter/routes.dart';
-import 'package:basic_flutter/uni_related.dart';
+import 'package:basic_flutter/uni_verify.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';

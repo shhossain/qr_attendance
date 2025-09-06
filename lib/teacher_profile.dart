@@ -1,5 +1,5 @@
 import 'package:basic_flutter/firebase_options.dart';
-import 'package:basic_flutter/menubutton.dart';
+import 'package:basic_flutter/menu_button.dart';
 import 'package:basic_flutter/profile_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -29,93 +29,93 @@ class TeacherProfile extends StatelessWidget {
         ),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-              return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                future: getUserData(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (!snapshot.hasData || !snapshot.data!.exists) {
-                    return const Center(child: Text("No user data found"));
-                  }
+            return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              future: getUserData(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || !snapshot.data!.exists) {
+                  return const Center(child: Text("No user data found"));
+                }
 
-                  final userData = snapshot.data!.data()!;
-                  final name = userData['name'] ?? '';
-                  final teacherId = userData['teacherId'] ?? '';
-                  final designation = userData['designation'] ?? '';
-                  final verifiedTeacher = userData['verified'] ?? false;
+                final userData = snapshot.data!.data()!;
+                final name = userData['name'] ?? '';
+                final teacherId = userData['teacherId'] ?? '';
+                final designation = userData['section'] ?? '';
+                final verifiedTeacher = userData['verified'] ?? false;
 
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // --- Profile Card ---
-                        ProfileCard(
-                          name: name,
-                          studentId: teacherId,
-                          section: designation,
-                          verified: verifiedTeacher,
-                        ),
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // --- Profile Card ---
+                      ProfileCard(
+                        name: name,
+                        id: teacherId,
+                        secondLine: "Designation: $designation",
+                        verified: verifiedTeacher,
+                      ),
 
-                        const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                        // --- Create Class Button ---
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            // TODO: Create class logic
-                          },
-                          icon: const Icon(Icons.add),
-                          label: const Text("Create Class"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(
-                              255,
-                              0,
-                              161,
-                              115,
-                            ),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                      // --- Create Class Button ---
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          // TODO: Create class logic
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text("Create Class"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            0,
+                            161,
+                            115,
                           ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // --- Classes List ---
-                        const Text(
-                          "Your Classes",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Example Class Card
-                        Card(
-                          elevation: 3,
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: ListTile(
-                            title: const Text("CSE 201 - Advanced Programming"),
-                            subtitle: const Text("Section B"),
-                            trailing: const Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                            ),
-                            onTap: () {
-                              // TODO: Navigate to class details
-                            },
-                          ),
                         ),
-                      ],
-                    ),
-                  );
-                },
-              );
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // --- Classes List ---
+                      const Text(
+                        "Your Classes",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Example Class Card
+                      Card(
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ListTile(
+                          title: const Text("CSE 201 - Advanced Programming"),
+                          subtitle: const Text("Section B"),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                          ),
+                          onTap: () {
+                            // TODO: Navigate to class details
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
           }
           return const Center(child: CircularProgressIndicator());
         },

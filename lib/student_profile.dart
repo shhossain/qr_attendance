@@ -1,5 +1,5 @@
 import 'package:basic_flutter/firebase_options.dart';
-import 'package:basic_flutter/menubutton.dart';
+import 'package:basic_flutter/menu_button.dart';
 import 'package:basic_flutter/profile_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -44,7 +44,7 @@ class StudentProfile extends StatelessWidget {
 
                   final userData = snapshot.data!.data()!;
                   final name = userData['name'] ?? '';
-                  final studentid = userData['studentId'] ?? '';
+                  final studentId = userData['studentId'] ?? '';
                   final section = userData['section'] ?? '';
                   final verifiedStudent = userData['verified'] ?? false;
 
@@ -56,8 +56,8 @@ class StudentProfile extends StatelessWidget {
                         // --- Profile Card ---
                         ProfileCard(
                           name: name,
-                          studentId: studentid,
-                          section: section,
+                          id: studentId,
+                          secondLine: "Section: $section",
                           verified: verifiedStudent,
                         ),
 

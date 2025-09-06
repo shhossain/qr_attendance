@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 
 class ProfileCard extends StatelessWidget {
   final String name;
-  final String studentId;
-  final String section;
+  final String id;
+  final String secondLine; // Section or Designation
   final bool verified;
 
   const ProfileCard({
     super.key,
     required this.name,
-    required this.studentId,
-    required this.section,
+    required this.id,
+    required this.secondLine,
     required this.verified,
   });
 
@@ -32,21 +32,21 @@ class ProfileCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
 
-            // Student ID
+            // ID
             Text(
-              "ID: $studentId",
+              "ID: $id",
               style: const TextStyle(fontSize: 16, color: Colors.black87),
             ),
             const SizedBox(height: 4),
 
-            // Section
+            // Section / Designation
             Text(
-              "Section: $section",
+              secondLine,
               style: const TextStyle(fontSize: 16, color: Colors.black87),
             ),
             const SizedBox(height: 12),
 
-            // Verified Status
+            // Verified Row
             Row(
               children: [
                 Icon(
