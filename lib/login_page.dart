@@ -1,3 +1,4 @@
+import 'package:basic_flutter/sub_pages/device_id.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -17,6 +18,8 @@ class _LoginState extends State<Login> {
   late TextEditingController _email;
   late TextEditingController _password;
   late String typeOfUser;
+  late String? loginDevice;
+  late String deviceId;
 
   @override
   void initState() {
@@ -166,28 +169,29 @@ class _LoginState extends State<Login> {
                                       .get();
 
                                   typeOfUser = doc['userType'];
-
-                                  if (typeOfUser == 'Student') {
-                                    Navigator.of(
+                                  deviceId = doc['DeviceId'];
+                                  loginDevice = await getAndroidDeviceId();
+                                  if (loginDevice != deviceId) {
+                                    await showError(
                                       context,
-                                    ).pushNamedAndRemoveUntil(
-                                      student,
-                                      (route) => false,
-                                    );
-                                  } else if (typeOfUser == 'Teacher') {
-                                    Navigator.of(
-                                      context,
-                                    ).pushNamedAndRemoveUntil(
-                                      teacher,
-                                      (route) => false,
+                                      'Please login from your own device',
                                     );
                                   } else {
-                                    Navigator.of(
-                                      context,
-                                    ).pushNamedAndRemoveUntil(
-                                      student,
-                                      (route) => false,
-                                    );
+                                    if (typeOfUser == 'Student') {
+                                      Navigator.of(
+                                        context,
+                                      ).pushNamedAndRemoveUntil(
+                                        student,
+                                        (route) => false,
+                                      );
+                                    } else if (typeOfUser == 'Teacher') {
+                                      Navigator.of(
+                                        context,
+                                      ).pushNamedAndRemoveUntil(
+                                        teacher,
+                                        (route) => false,
+                                      );
+                                    }
                                   }
                                 }
                               } on FirebaseAuthException catch (e) {

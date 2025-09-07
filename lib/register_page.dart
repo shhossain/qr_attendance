@@ -1,3 +1,4 @@
+import 'package:basic_flutter/sub_pages/device_id.dart';
 import 'package:basic_flutter/sub_pages/email_verify.dart';
 import 'package:basic_flutter/sub_pages/errordialog.dart';
 import 'package:basic_flutter/sub_pages/firebase_options.dart';
@@ -315,8 +316,9 @@ class _RegisterState extends State<Register> {
                           if (user != null) {
                             await user.updatePassword(_password.text);
                           }
-                          final uid = _uid;
+                          final uid = _uid; // user id.
                           if (uid == null) throw Exception('UID missing');
+                          final deviceId = await getAndroidDeviceId();
 
                           await FirebaseFirestore.instance
                               .collection('users')
@@ -328,6 +330,7 @@ class _RegisterState extends State<Register> {
                                 'userType': userType,
                                 'section': _section.text,
                                 'verified': _uniVerified,
+                                'DeviceId': deviceId,
                                 'createdAt': FieldValue.serverTimestamp(),
                               });
                         } catch (e) {
