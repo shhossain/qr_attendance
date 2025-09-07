@@ -1,6 +1,6 @@
-import 'package:basic_flutter/firebase_options.dart';
-import 'package:basic_flutter/menu_button.dart';
-import 'package:basic_flutter/profile_card.dart';
+import 'package:basic_flutter/sub_pages/firebase_options.dart';
+import 'package:basic_flutter/sub_pages/menu_button.dart';
+import 'package:basic_flutter/sub_pages/profile_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';

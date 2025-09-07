@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -51,16 +53,42 @@ class _UniVerifyState extends State<UniVerify> {
       if (!mounted) return;
 
       if (resp.statusCode == 200 && data["ok"] == true) {
+        final sid = data['sid'];
+
+        // 🔹 Check Firestore if same Student ID already exists
+        final query = await FirebaseFirestore.instance
+            .collection('users')
+            .where('studentId', isEqualTo: sid)
+            .get();
+
+        if (query.docs.isNotEmpty) {
+          // Already used by another account
+          await showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text("Profile Already Used"),
+              content: Text("This Student ID ($sid) is already linked to another account."),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text("OK"),
+                ),
+              ],
+            ),
+          );
+          Navigator.of(context).pop({'verified': false, 'sid': null});
+          return;
+        }
+
+        // ✅ If not used before, allow verification
         final result = await showDialog<Map<String, dynamic>>(
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text("Verified Student"),
-            content: Text("Name: ${data['name']}\nID: ${data['sid']}"),
+            content: Text("Name: ${data['name']}\nID: $sid"),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(
-                  ctx,
-                ).pop({'verified': true, 'sid': data['sid']}),
+                onPressed: () => Navigator.of(ctx).pop({'verified': true, 'sid': sid}),
                 child: const Text("OK"),
               ),
             ],
@@ -77,8 +105,7 @@ class _UniVerifyState extends State<UniVerify> {
             ),
             actions: [
               TextButton(
-                onPressed: () =>
-                    Navigator.of(ctx).pop({'verified': false, 'sid': null}),
+                onPressed: () => Navigator.of(ctx).pop({'verified': false, 'sid': null}),
                 child: const Text("OK"),
               ),
             ],
@@ -142,16 +169,14 @@ class _UniVerifyState extends State<UniVerify> {
                     TextFormField(
                       controller: _idCtrl,
                       decoration: inputDecoration("Student ID"),
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? "Required" : null,
+                      validator: (v) => (v == null || v.trim().isEmpty) ? "Required" : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _pwCtrl,
                       obscureText: true,
                       decoration: inputDecoration("University Password"),
-                      validator: (v) =>
-                          (v == null || v.isEmpty) ? "Required" : null,
+                      validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
                     ),
                     const SizedBox(height: 24),
                     SizedBox(
@@ -169,16 +194,9 @@ class _UniVerifyState extends State<UniVerify> {
                                 ),
                               )
                             : const Icon(Icons.verified_user),
-                        label: Text(
-                          _loading ? "Verifying..." : "Verify Student",
-                        ),
+                        label: Text(_loading ? "Verifying..." : "Verify Student"),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            0,
-                            161,
-                            115,
-                          ),
+                          backgroundColor: const Color.fromARGB(255, 0, 161, 115),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:basic_flutter/errordialog.dart';
-import 'package:basic_flutter/routes.dart';
-import 'firebase_options.dart';
+import 'package:basic_flutter/sub_pages/errordialog.dart';
+import 'package:basic_flutter/sub_pages/routes.dart';
+import 'sub_pages/firebase_options.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});

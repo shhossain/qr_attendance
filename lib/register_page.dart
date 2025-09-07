@@ -1,8 +1,8 @@
-import 'package:basic_flutter/email_verify.dart';
-import 'package:basic_flutter/errordialog.dart';
-import 'package:basic_flutter/firebase_options.dart';
-import 'package:basic_flutter/routes.dart';
-import 'package:basic_flutter/uni_verify.dart';
+import 'package:basic_flutter/sub_pages/email_verify.dart';
+import 'package:basic_flutter/sub_pages/errordialog.dart';
+import 'package:basic_flutter/sub_pages/firebase_options.dart';
+import 'package:basic_flutter/sub_pages/routes.dart';
+import 'package:basic_flutter/sub_pages/uni_verify.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
