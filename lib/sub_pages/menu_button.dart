@@ -1,4 +1,3 @@
-import 'package:basic_flutter/sub_pages/errordialog.dart';
 import 'package:basic_flutter/sub_pages/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -59,6 +58,35 @@ Future<bool> showLogout(BuildContext context) {
               Navigator.of(context).pop(false);
             },
             child: const Text('Cancel'),
+          ),
+        ],
+      );
+    },
+  ).then((value) => value ?? false);
+}
+
+Future<bool> devicelost(BuildContext context) {
+  return showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Notice'),
+        content: const Text('Please login from your own device'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil(lostdevice, (route) => false);
+            },
+            child: const Text('Get Help'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(false);
+            },
+            child: const Text('Ok'),
           ),
         ],
       );

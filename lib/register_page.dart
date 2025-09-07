@@ -331,7 +331,6 @@ class _RegisterState extends State<Register> {
                                 'section': _section.text,
                                 'verified': _uniVerified,
                                 'DeviceId': deviceId,
-                                'createdAt': FieldValue.serverTimestamp(),
                               });
                         } catch (e) {
                           await showError(context, 'Registration Failed');
@@ -369,6 +368,18 @@ class _RegisterState extends State<Register> {
             ),
           );
         },
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 30),
+        child: Text(
+          "💡 Tip: An account cannot be logged in on multiple devices.",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 14,
+            color: const Color.fromARGB(255, 46, 45, 45),
+            fontStyle: FontStyle.italic,
+          ),
+        ),
       ),
     );
   }

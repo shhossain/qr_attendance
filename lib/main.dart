@@ -1,6 +1,7 @@
 import 'package:basic_flutter/login_page.dart';
 import 'package:basic_flutter/register_page.dart';
 import 'package:basic_flutter/sub_pages/firebase_options.dart';
+import 'package:basic_flutter/sub_pages/lost_device.dart';
 import 'package:basic_flutter/sub_pages/routes.dart';
 import 'package:basic_flutter/student_profile.dart';
 import 'package:basic_flutter/teacher_profile.dart';
@@ -33,8 +34,10 @@ class MyApp extends StatelessWidget {
 
     if (userType == 'student') {
       return const StudentProfile();
-    } else {
+    } else if (userType == 'teacher') {
       return const TeacherProfile();
+    } else {
+      return const Login();
     }
   }
 
@@ -52,6 +55,7 @@ class MyApp extends StatelessWidget {
         register: (context) => const Register(),
         student: (context) => const StudentProfile(),
         teacher: (context) => const TeacherProfile(),
+        lostdevice: (context) => const LostDevice(),
       },
 
       home: FutureBuilder<Widget>(

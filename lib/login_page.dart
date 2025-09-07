@@ -1,4 +1,5 @@
 import 'package:basic_flutter/sub_pages/device_id.dart';
+import 'package:basic_flutter/sub_pages/menu_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -18,8 +19,8 @@ class _LoginState extends State<Login> {
   late TextEditingController _email;
   late TextEditingController _password;
   late String typeOfUser;
-  late String? loginDevice;
   late String deviceId;
+  late String? loginDevice;
 
   @override
   void initState() {
@@ -48,6 +49,91 @@ class _LoginState extends State<Login> {
     );
   }
 
+  Future<int> _countAccountsWithDevice(String deviceId) async {
+    final query = await FirebaseFirestore.instance
+        .collection('users')
+        .where('DeviceId', isEqualTo: deviceId)
+        .get();
+    return query.docs.length;
+  }
+
+  Future<void> _login() async {
+    final email = _email.text.trim();
+    final password = _password.text.trim();
+
+    try {
+      final userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+
+      if (userCredential.user != null && userCredential.user!.emailVerified) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .get();
+
+        typeOfUser = doc['userType'];
+        deviceId = doc['DeviceId'];
+        loginDevice = await getAndroidDeviceId();
+
+        // Check if device is used in multiple accounts
+        final count = await _countAccountsWithDevice(loginDevice!);
+        if (count > 1) {
+          await showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text("Device Blocked"),
+              content: const Text(
+                "This device is linked with multiple accounts",
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    Navigator.of(
+                      context,
+                    ).pushNamedAndRemoveUntil(lostdevice, (route) => false);
+                  },
+                  child: const Text("Get Help"),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text("OK"),
+                ),
+              ],
+            ),
+          );
+          await FirebaseAuth.instance.signOut();
+          return;
+        }
+
+        // Check if login device matches registered device
+        if (loginDevice != deviceId) {
+          await FirebaseAuth.instance.signOut();
+          await devicelost(context);
+          return;
+        }
+
+        // Normal login
+        if (typeOfUser == 'Student') {
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil(student, (route) => false);
+        } else{
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil(teacher, (route) => false);
+        } 
+      }
+    } on FirebaseAuthException catch (e) {
+      String message = 'Login failed';
+      if (e.code == 'invalid-credential') {
+        message = 'Incorrect Username or Password';
+      }
+      if (!mounted) return;
+      await showError(context, message);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,6 +149,10 @@ class _LoginState extends State<Login> {
             options: DefaultFirebaseOptions.currentPlatform,
           ),
           builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
             return Column(
               children: [
                 Expanded(
@@ -74,7 +164,6 @@ class _LoginState extends State<Login> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Top Logo
                         Container(
                           height: 200,
                           margin: const EdgeInsets.only(bottom: 24),
@@ -83,8 +172,6 @@ class _LoginState extends State<Login> {
                             fit: BoxFit.contain,
                           ),
                         ),
-
-                        // Email Field
                         TextField(
                           controller: _email,
                           keyboardType: TextInputType.emailAddress,
@@ -92,8 +179,6 @@ class _LoginState extends State<Login> {
                           decoration: inputDecoration('Enter your email'),
                         ),
                         const SizedBox(height: 16),
-
-                        // Password Field
                         TextField(
                           controller: _password,
                           obscureText: true,
@@ -101,8 +186,6 @@ class _LoginState extends State<Login> {
                           decoration: inputDecoration('Enter your password'),
                         ),
                         const SizedBox(height: 10),
-
-                        //forgot password
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
@@ -131,8 +214,6 @@ class _LoginState extends State<Login> {
                           ),
                         ),
                         const SizedBox(height: 20),
-
-                        // Login Button
                         SizedBox(
                           height: 50,
                           child: ElevatedButton(
@@ -148,61 +229,7 @@ class _LoginState extends State<Login> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            onPressed: () async {
-                              final email = _email.text.trim();
-                              final password = _password.text.trim();
-
-                              try {
-                                final userCredential = await FirebaseAuth
-                                    .instance
-                                    .signInWithEmailAndPassword(
-                                      email: email,
-                                      password: password,
-                                    );
-
-                                if (userCredential.user != null &&
-                                    userCredential.user!.emailVerified) {
-                                  // Fetch userType from Firestore
-                                  final doc = await FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(userCredential.user!.uid)
-                                      .get();
-
-                                  typeOfUser = doc['userType'];
-                                  deviceId = doc['DeviceId'];
-                                  loginDevice = await getAndroidDeviceId();
-                                  if (loginDevice != deviceId) {
-                                    await showError(
-                                      context,
-                                      'Please login from your own device',
-                                    );
-                                  } else {
-                                    if (typeOfUser == 'Student') {
-                                      Navigator.of(
-                                        context,
-                                      ).pushNamedAndRemoveUntil(
-                                        student,
-                                        (route) => false,
-                                      );
-                                    } else if (typeOfUser == 'Teacher') {
-                                      Navigator.of(
-                                        context,
-                                      ).pushNamedAndRemoveUntil(
-                                        teacher,
-                                        (route) => false,
-                                      );
-                                    }
-                                  }
-                                }
-                              } on FirebaseAuthException catch (e) {
-                                String message = 'Login failed';
-                                if (e.code == 'invalid-credential') {
-                                  message = 'Incorrect Username or Password';
-                                }
-                                if (!mounted) return;
-                                await showError(context, message);
-                              }
-                            },
+                            onPressed: _login,
                             child: const Text(
                               'Login',
                               style: TextStyle(
@@ -217,7 +244,6 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.only(
                     left: 16,
