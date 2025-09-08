@@ -1,5 +1,6 @@
 import 'package:basic_flutter/sub_pages/device_id.dart';
 import 'package:basic_flutter/sub_pages/menu_button.dart';
+import 'package:basic_flutter/sub_pages/show_pass.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -118,11 +119,11 @@ class _LoginState extends State<Login> {
           Navigator.of(
             context,
           ).pushNamedAndRemoveUntil(student, (route) => false);
-        } else{
+        } else {
           Navigator.of(
             context,
           ).pushNamedAndRemoveUntil(teacher, (route) => false);
-        } 
+        }
       }
     } on FirebaseAuthException catch (e) {
       String message = 'Login failed';
@@ -179,12 +180,7 @@ class _LoginState extends State<Login> {
                           decoration: inputDecoration('Enter your email'),
                         ),
                         const SizedBox(height: 16),
-                        TextField(
-                          controller: _password,
-                          obscureText: true,
-                          enableSuggestions: false,
-                          decoration: inputDecoration('Enter your password'),
-                        ),
+                        passwordField(controller: _password),
                         const SizedBox(height: 10),
                         Align(
                           alignment: Alignment.centerRight,

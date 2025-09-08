@@ -3,6 +3,7 @@ import 'package:basic_flutter/sub_pages/email_verify.dart';
 import 'package:basic_flutter/sub_pages/errordialog.dart';
 import 'package:basic_flutter/sub_pages/firebase_options.dart';
 import 'package:basic_flutter/sub_pages/routes.dart';
+import 'package:basic_flutter/sub_pages/show_pass.dart';
 import 'package:basic_flutter/sub_pages/uni_verify.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -192,31 +193,28 @@ class _RegisterState extends State<Register> {
                   const SizedBox(height: 16),
 
                   // Password
-                  TextField(
-                    controller: _password,
-                    obscureText: true,
-                    enableSuggestions: false,
-                    decoration: inputDecoration(
-                      _emailVerified
+                  IgnorePointer(
+                    ignoring: !_emailVerified,
+                    child: passwordField(
+                      controller: _password,
+                      hintText: _emailVerified
                           ? 'Enter your Password'
                           : 'Verify your email first',
                     ),
-                    enabled: _emailVerified,
                   ),
                   const SizedBox(height: 16),
 
                   // Confirm Password
-                  TextField(
-                    controller: _cpassword,
-                    obscureText: true,
-                    enableSuggestions: false,
-                    decoration: inputDecoration(
-                      _emailVerified
+                  IgnorePointer(
+                    ignoring: !_emailVerified,
+                    child: passwordField(
+                      controller: _cpassword,
+                      hintText: _emailVerified
                           ? 'Enter your Password'
                           : 'Verify your email first',
                     ),
-                    enabled: _emailVerified,
                   ),
+
                   const SizedBox(height: 16),
 
                   // Section / Designation
