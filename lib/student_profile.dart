@@ -15,7 +15,7 @@ class StudentProfile extends StatelessWidget {
     return FirebaseFirestore.instance.collection("users").doc(uid).get();
   }
 
-  /// --- Join a class with code ---
+  /// --- Join a class with code (with section check) ---
   Future<void> _joinClass(BuildContext context) async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     final TextEditingController codeController = TextEditingController();
@@ -50,6 +50,10 @@ class StudentProfile extends StatelessWidget {
     if (code == null || code.isEmpty) return;
 
     try {
+      // Fetch student's section
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final userSection = userDoc.data()?['section'] ?? '';
+
       // Check global collection for class
       final classDoc = await FirebaseFirestore.instance
           .collection("global")
@@ -69,8 +73,20 @@ class StudentProfile extends StatelessWidget {
       }
 
       final classData = classDoc.data()!;
+      final classSection = classData['section'] ?? '';
 
-      // Save inside student profile -> joinedClasses
+      // Section validation
+      if (userSection != classSection) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Section mismatch."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Add class to student's joinedClasses
       await FirebaseFirestore.instance
           .collection("users")
           .doc(uid)
@@ -229,12 +245,8 @@ class StudentProfile extends StatelessWidget {
 
                                 // Convert "HH:mm" -> "h:mm a"
                                 try {
-                                  final time = DateFormat(
-                                    "HH:mm",
-                                  ).parse(rawTime);
-                                  displayTime = DateFormat(
-                                    "h:mm a",
-                                  ).format(time);
+                                  final time = DateFormat("HH:mm").parse(rawTime);
+                                  displayTime = DateFormat("h:mm a").format(time);
                                 } catch (_) {
                                   // fallback if parsing fails
                                 }
@@ -249,7 +261,7 @@ class StudentProfile extends StatelessWidget {
                                         0,
                                         161,
                                         115,
-                                      ), // join class color
+                                      ),
                                       width: 2,
                                     ),
                                   ),

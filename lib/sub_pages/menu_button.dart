@@ -9,10 +9,9 @@ class CustomMenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       onSelected: (value) async {
-        if (value == 'login') {
-          Navigator.of(
-            context,
-          ).pushNamedAndRemoveUntil(login, (route) => false);
+        if (value == 'logout') {
+          await showLogout(context);
+          await FirebaseAuth.instance.signOut();
         } else if (value == 'refresh') {
           Navigator.pushReplacementNamed(
             context,
