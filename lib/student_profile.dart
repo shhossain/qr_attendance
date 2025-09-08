@@ -204,6 +204,7 @@ class StudentProfile extends StatelessWidget {
                               .collection("users")
                               .doc(FirebaseAuth.instance.currentUser!.uid)
                               .collection("joinedClasses")
+                              .orderBy('startTime')
                               .snapshots(),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==

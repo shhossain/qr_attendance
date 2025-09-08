@@ -132,66 +132,78 @@ class _CreateClassPageState extends State<CreateClassPage> {
         }
 
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           appBar: AppBar(
             backgroundColor: const Color.fromARGB(255, 0, 161, 115),
             title: const Text("Create Class"),
             elevation: 0,
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _classNameController,
-                  decoration: const InputDecoration(
-                    labelText: "Class Name",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _sectionController,
-                  decoration: const InputDecoration(
-                    labelText: "Section",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
+          body: SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
                   children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _pickStartTime,
-                        child: Text(
-                          _classStartTime == null
-                              ? "Pick Class Start Time"
-                              : "Start Time: ${_classStartTime!.format(context)}",
+                    TextField(
+                      controller: _classNameController,
+                      decoration: const InputDecoration(
+                        labelText: "Class Name",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _sectionController,
+                      decoration: const InputDecoration(
+                        labelText: "Section",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _pickStartTime,
+                            child: Text(
+                              _classStartTime == null
+                                  ? "Pick Class Start Time"
+                                  : "Start Time: ${_classStartTime!.format(context)}",
+                            ),
+                          ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _createClass,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            0,
+                            161,
+                            115,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : const Text(
+                                "Create Class",
+                                style: TextStyle(fontSize: 18),
+                              ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _createClass,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 0, 161, 115),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            "Create Class",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         );

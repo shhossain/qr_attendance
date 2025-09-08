@@ -68,6 +68,7 @@ class _RegisterState extends State<Register> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 0, 161, 115),
         title: const Text("Register"),
@@ -372,7 +373,7 @@ class _RegisterState extends State<Register> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(bottom: 30),
         child: Text(
-          "💡 Tip: An account cannot be logged in on multiple devices.",
+          "💡 Tip: An account cannot be logged on multiple devices.",
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 14,

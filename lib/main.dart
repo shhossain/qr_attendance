@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
     } else if (userType == 'teacher') {
       return const TeacherProfile();
     } else {
-      return const StudentProfile();
+      return const Login();
     }
   }
 
