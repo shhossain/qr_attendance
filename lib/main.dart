@@ -1,5 +1,4 @@
 import 'package:basic_flutter/create_class.dart';
-import 'package:basic_flutter/join_class.dart';
 import 'package:basic_flutter/login_page.dart';
 import 'package:basic_flutter/register_page.dart';
 import 'package:basic_flutter/sub_pages/firebase_options.dart';
@@ -39,7 +38,7 @@ class MyApp extends StatelessWidget {
     } else if (userType == 'teacher') {
       return const TeacherProfile();
     } else {
-      return const TeacherProfile();
+      return const StudentProfile();
     }
   }
 
@@ -59,7 +58,6 @@ class MyApp extends StatelessWidget {
         teacher: (context) => const TeacherProfile(),
         lostdevice: (context) => const LostDevice(),
         createclass: (context) => const CreateClassPage(),
-        joinclass: (context) => const JoinClassPage(),
       },
 
       home: FutureBuilder<Widget>(

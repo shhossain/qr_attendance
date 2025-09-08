@@ -1,5 +1,5 @@
-import 'dart:math';
 import 'package:basic_flutter/sub_pages/firebase_options.dart';
+import 'package:basic_flutter/sub_pages/random_number.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,12 +18,6 @@ class _CreateClassPageState extends State<CreateClassPage> {
   final TextEditingController _sectionController = TextEditingController();
   TimeOfDay? _classStartTime;
   bool _isLoading = false;
-
-  /// Generate 5-digit unique code
-  String _generateClassCode() {
-    final rnd = Random();
-    return (10000 + rnd.nextInt(90000)).toString();
-  }
 
   Future<void> _createClass() async {
     final className = _classNameController.text.trim();
@@ -44,33 +38,44 @@ class _CreateClassPageState extends State<CreateClassPage> {
     });
 
     try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) throw Exception("User not logged in");
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception("User not logged in");
 
-      String classCode = _generateClassCode();
+      String classCode = await generateUniqueClassCode();
 
-      // Ensure uniqueness by checking Firestore
       final userClasses = FirebaseFirestore.instance
           .collection("users")
-          .doc(uid)
+          .doc(user.uid)
           .collection("classes");
 
-      final snapshot = await userClasses.doc(classCode).get();
-      if (snapshot.exists) {
-        // Regenerate if already exists
-        classCode = _generateClassCode();
+      final globalClasses = FirebaseFirestore.instance
+          .collection("global")
+          .doc("classes")
+          .collection("allClasses");
+
+      // Check uniqueness in user collection
+      final snapshotUser = await userClasses.doc(classCode).get();
+      // Check uniqueness in global collection
+      final snapshotGlobal = await globalClasses.doc(classCode).get();
+
+      if (snapshotUser.exists || snapshotGlobal.exists) {
+        classCode = await generateUniqueClassCode();
       }
 
-      final classDoc = userClasses.doc(classCode);
-
-      await classDoc.set({
+      final classData = {
         "name": className,
         "section": section,
         "startTime": "${_classStartTime!.hour}:${_classStartTime!.minute}",
         "code": classCode,
-      });
+        "ownerUid": user.uid,
+      };
 
-      // Success SnackBar
+      // Save under teacher's profile
+      await userClasses.doc(classCode).set(classData);
+
+      // Save globally
+      await globalClasses.doc(classCode).set(classData);
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Class created successfully!"),
@@ -78,7 +83,6 @@ class _CreateClassPageState extends State<CreateClassPage> {
         ),
       );
 
-      // Go back to teacher profile immediately
       Navigator.of(context).pushNamedAndRemoveUntil(teacher, (route) => false);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
