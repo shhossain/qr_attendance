@@ -247,10 +247,7 @@ class _LoginState extends State<Login> {
                             ),
                           ),
                           onPressed: () {
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                              register,
-                              (route) => false,
-                            );
+                            Navigator.of(context).pushNamed(register);
                           },
                           child: const Text(
                             "Create New Account",

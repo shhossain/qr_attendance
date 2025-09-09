@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,26 +21,42 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // Cache userType in SharedPreferences
+  Future<void> _cacheUserType(String uid, String type) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userType_$uid', type);
+  }
+
+  Future<String?> _getCachedUserType(String uid) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userType_$uid');
+  }
+
+  // Determine start page
   Future<Widget> _getStartPage() async {
     final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const Login();
 
-    if (user == null) {
-      return const Login();
+    // Check cache first
+    final cachedType = await _getCachedUserType(user.uid);
+    if (cachedType != null) {
+      if (cachedType.toLowerCase() == 'student') return const StudentProfile();
+      if (cachedType.toLowerCase() == 'teacher') return const TeacherProfile();
     }
+
+    // Fetch from Firestore if not cached
     final doc = await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
         .get();
 
-    final userType = doc['userType'];
+    final userType = doc['userType'] as String?;
+    if (userType != null) await _cacheUserType(user.uid, userType);
 
-    if (userType == 'student') {
-      return const StudentProfile();
-    } else if (userType == 'teacher') {
-      return const TeacherProfile();
-    } else {
-      return const Login();
-    }
+    if (userType?.toLowerCase() == 'student') return const StudentProfile();
+    if (userType?.toLowerCase() == 'teacher') return const TeacherProfile();
+
+    return const Login();
   }
 
   @override
@@ -60,6 +77,7 @@ class MyApp extends StatelessWidget {
         createclass: (context) => const CreateClassPage(),
       },
 
+      // Home page decides based on auth & cached userType
       home: FutureBuilder<Widget>(
         future: _getStartPage(),
         builder: (context, snapshot) {
@@ -68,9 +86,7 @@ class MyApp extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          if (snapshot.hasData) {
-            return snapshot.data!;
-          }
+          if (snapshot.hasData) return snapshot.data!;
           return const Login();
         },
       ),
