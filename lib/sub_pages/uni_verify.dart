@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:basic_flutter/sub_pages/show_pass.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -66,7 +67,9 @@ class _UniVerifyState extends State<UniVerify> {
             context: context,
             builder: (ctx) => AlertDialog(
               title: const Text("Profile Already Used"),
-              content: Text("This Student ID ($sid) is already linked to another account."),
+              content: Text(
+                "This Student ID ($sid) is already linked to another account.",
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
@@ -87,7 +90,8 @@ class _UniVerifyState extends State<UniVerify> {
             content: Text("Name: ${data['name']}\nID: $sid"),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(ctx).pop({'verified': true, 'sid': sid}),
+                onPressed: () =>
+                    Navigator.of(ctx).pop({'verified': true, 'sid': sid}),
                 child: const Text("OK"),
               ),
             ],
@@ -104,7 +108,8 @@ class _UniVerifyState extends State<UniVerify> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(ctx).pop({'verified': false, 'sid': null}),
+                onPressed: () =>
+                    Navigator.of(ctx).pop({'verified': false, 'sid': null}),
                 child: const Text("OK"),
               ),
             ],
@@ -168,15 +173,15 @@ class _UniVerifyState extends State<UniVerify> {
                     TextFormField(
                       controller: _idCtrl,
                       decoration: inputDecoration("Student ID"),
-                      validator: (v) => (v == null || v.trim().isEmpty) ? "Required" : null,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? "Required" : null,
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
+                    passwordField(
                       controller: _pwCtrl,
-                      obscureText: true,
-                      decoration: inputDecoration("University Password"),
-                      validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
+                      hintText: "University Password",
                     ),
+
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
@@ -193,9 +198,16 @@ class _UniVerifyState extends State<UniVerify> {
                                 ),
                               )
                             : const Icon(Icons.verified_user),
-                        label: Text(_loading ? "Verifying..." : "Verify Student"),
+                        label: Text(
+                          _loading ? "Verifying..." : "Verify Student",
+                        ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 0, 161, 115),
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            0,
+                            161,
+                            115,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

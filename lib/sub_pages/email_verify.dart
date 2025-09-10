@@ -1,53 +1,55 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class VerifyEmail extends StatefulWidget {
-  final String email;
-  const VerifyEmail({super.key, required this.email});
+  const VerifyEmail({super.key});
 
   @override
   State<VerifyEmail> createState() => _VerifyEmailState();
 }
 
 class _VerifyEmailState extends State<VerifyEmail> {
-  bool _sent = false;
+  // ignore: unused_field
   bool _verified = false;
   String? _uid;
+  bool _loading = false;
 
-  Future<void> sendVerification() async {
+  Future<void> signInWithGoogle() async {
+    setState(() => _loading = true);
     try {
-      // Create user in Firebase temporarily with a random password
-      final password = "123456";
-      final userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-            email: widget.email,
-            password: password,
-          );
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        setState(() => _loading = false);
+        return; // User canceled the sign-in
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
 
       _uid = userCredential.user!.uid;
 
-      await userCredential.user!.sendEmailVerification();
-      setState(() => _sent = true);
+      setState(() {
+        _verified = true;
+        _loading = false;
+      });
 
+      // Return to previous page with verification result
+      Navigator.of(context).pop({'verified': true, 'uid': _uid});
+    } catch (e) {
+      setState(() => _loading = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Verification email sent')));
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'email-already-in-use') {
-        final user = FirebaseAuth.instance.currentUser;
-        if (user != null) _uid = user.uid;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Email already in use')));
-      }
-    }
-  }
-
-  Future<void> checkVerified() async {
-    final user = FirebaseAuth.instance.currentUser;
-    await user?.reload();
-    if (user?.emailVerified ?? false) {
-      setState(() => _verified = true);
+      ).showSnackBar(SnackBar(content: Text('Google sign-in failed: $e')));
     }
   }
 
@@ -55,33 +57,35 @@ class _VerifyEmailState extends State<VerifyEmail> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Verify Email'),
+        title: const Text('Verify with Google'),
         backgroundColor: const Color.fromARGB(255, 0, 161, 115),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Email: ${widget.email}'),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _sent ? null : sendVerification,
-              child: Text(_sent ? 'Email Sent' : 'Send Verification Email'),
+            const Text(
+              'Please verify your email using Google Sign-In',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                await checkVerified();
-                if (_verified) {
-                  Navigator.of(context).pop({'verified': true, 'uid': _uid});
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Email not verified yet')),
-                  );
-                }
-              },
-              child: const Text('Check Verification'),
-            ),
+            const SizedBox(height: 30),
+            _loading
+                ? const CircularProgressIndicator()
+                : ElevatedButton.icon(
+                    icon: Image.asset(
+                      'assets/google_logo.png', // Optional: Google logo
+                      height: 24,
+                    ),
+                    label: const Text('Sign in with Google'),
+                    onPressed: signInWithGoogle,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                  ),
           ],
         ),
       ),

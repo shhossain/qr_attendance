@@ -1,13 +1,14 @@
 import 'package:basic_flutter/sub_pages/device_id.dart';
-import 'package:basic_flutter/sub_pages/email_verify.dart';
 import 'package:basic_flutter/sub_pages/errordialog.dart';
 import 'package:basic_flutter/sub_pages/firebase_options.dart';
 import 'package:basic_flutter/sub_pages/routes.dart';
+import 'package:basic_flutter/sub_pages/show_pass.dart';
 import 'package:basic_flutter/sub_pages/uni_verify.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -30,6 +31,8 @@ class _RegisterState extends State<Register> {
   bool _emailVerified = false;
   String? _studentId;
   String? _uid;
+
+  bool _loadingGoogle = false;
 
   @override
   void initState() {
@@ -64,10 +67,49 @@ class _RegisterState extends State<Register> {
     );
   }
 
+  Future<void> verifyWithGoogle() async {
+    setState(() => _loadingGoogle = true);
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        setState(() => _loadingGoogle = false);
+        return; // User cancelled
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
+
+      _uid = userCredential.user!.uid;
+      setState(() {
+        _emailVerified = true;
+        _loadingGoogle = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Google verification successful')),
+      );
+    } catch (e) {
+      setState(() => _loadingGoogle = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Google sign-in failed: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 0, 161, 115),
         title: const Text("Register"),
@@ -139,83 +181,55 @@ class _RegisterState extends State<Register> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Email with Verify Button inside
+                  // Email with Google Verify Button inside
                   TextField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
                     enableSuggestions: false,
                     decoration: inputDecoration('Enter your Email').copyWith(
-                      suffixIcon: StatefulBuilder(
-                        builder: (context, setStateSB) {
-                          return TextButton(
-                            onPressed: () async {
-                              final result = await Navigator.of(context)
-                                  .push<Map<String, dynamic>>(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          VerifyEmail(email: _email.text),
-                                    ),
-                                  );
-
-                              if (result != null) {
-                                setState(() {
-                                  _emailVerified = result['verified'];
-                                  _uid = result['uid'];
-                                });
-                                setStateSB(() {}); // update button state
-                              }
-                            },
-                            child: Text(
-                              _emailVerified ? 'Verified' : 'Verify',
-                              style: TextStyle(
-                                color: _emailVerified
-                                    ? const Color.fromARGB(
-                                        255,
-                                        3,
-                                        100,
-                                        19,
-                                      ) // Green tone
-                                    : const Color.fromARGB(
-                                        255,
-                                        160,
-                                        0,
-                                        0,
-                                      ), // Red tone
+                      suffixIcon: _loadingGoogle
+                          ? const Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : TextButton(
+                              onPressed: verifyWithGoogle,
+                              child: Text(
+                                _emailVerified ? 'Verified' : 'Verify',
+                                style: TextStyle(
+                                  color: _emailVerified
+                                      ? const Color.fromARGB(255, 3, 100, 19)
+                                      : const Color.fromARGB(255, 160, 0, 0),
+                                ),
                               ),
                             ),
-                          );
-                        },
-                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
 
                   // Password
-                  TextField(
-                    controller: _password,
-                    obscureText: true,
-                    enableSuggestions: false,
-                    decoration: inputDecoration(
-                      _emailVerified
+                  IgnorePointer(
+                    ignoring: !_emailVerified,
+                    child: passwordField(
+                      controller: _password,
+                      hintText: _emailVerified
                           ? 'Enter your Password'
                           : 'Verify your email first',
                     ),
-                    enabled: _emailVerified,
                   ),
                   const SizedBox(height: 16),
 
                   // Confirm Password
-                  TextField(
-                    controller: _cpassword,
-                    obscureText: true,
-                    enableSuggestions: false,
-                    decoration: inputDecoration(
-                      _emailVerified
+                  IgnorePointer(
+                    ignoring: !_emailVerified,
+                    child: passwordField(
+                      controller: _cpassword,
+                      hintText: _emailVerified
                           ? 'Enter your Password'
                           : 'Verify your email first',
                     ),
-                    enabled: _emailVerified,
                   ),
+
                   const SizedBox(height: 16),
 
                   // Section / Designation
@@ -305,6 +319,20 @@ class _RegisterState extends State<Register> {
                           );
                           return;
                         }
+                        if (_name.text.trim().isEmpty) {
+                          await showError(context, 'Please enter your name');
+                          return;
+                        }
+
+                        if (_section.text.trim().isEmpty) {
+                          await showError(
+                            context,
+                            userType == "Student"
+                                ? 'Please enter your section'
+                                : 'Please enter your designation',
+                          );
+                          return;
+                        }
 
                         if (_password.text != _cpassword.text) {
                           await showError(context, 'Passwords do not match');
@@ -316,7 +344,7 @@ class _RegisterState extends State<Register> {
                           if (user != null) {
                             await user.updatePassword(_password.text);
                           }
-                          final uid = _uid; // user id.
+                          final uid = _uid;
                           if (uid == null) throw Exception('UID missing');
                           final deviceId = await getAndroidDeviceId();
 
@@ -368,18 +396,6 @@ class _RegisterState extends State<Register> {
             ),
           );
         },
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 30),
-        child: Text(
-          "💡 Tip: An account cannot be logged in on multiple devices.",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 14,
-            color: const Color.fromARGB(255, 46, 45, 45),
-            fontStyle: FontStyle.italic,
-          ),
-        ),
       ),
     );
   }

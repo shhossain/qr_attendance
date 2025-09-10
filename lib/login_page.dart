@@ -1,5 +1,6 @@
 import 'package:basic_flutter/sub_pages/device_id.dart';
 import 'package:basic_flutter/sub_pages/menu_button.dart';
+import 'package:basic_flutter/sub_pages/show_pass.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -75,7 +76,6 @@ class _LoginState extends State<Login> {
         deviceId = doc['DeviceId'];
         loginDevice = await getAndroidDeviceId();
 
-        // Check if device is used in multiple accounts
         final count = await _countAccountsWithDevice(loginDevice!);
         if (count > 1) {
           await showDialog(
@@ -106,23 +106,21 @@ class _LoginState extends State<Login> {
           return;
         }
 
-        // Check if login device matches registered device
         if (loginDevice != deviceId) {
           await FirebaseAuth.instance.signOut();
           await devicelost(context);
           return;
         }
 
-        // Normal login
         if (typeOfUser == 'Student') {
           Navigator.of(
             context,
           ).pushNamedAndRemoveUntil(student, (route) => false);
-        } else{
+        } else {
           Navigator.of(
             context,
           ).pushNamedAndRemoveUntil(teacher, (route) => false);
-        } 
+        }
       }
     } on FirebaseAuthException catch (e) {
       String message = 'Login failed';
@@ -153,134 +151,117 @@ class _LoginState extends State<Login> {
               return const Center(child: CircularProgressIndicator());
             }
 
-            return Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 24,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Container(
-                          height: 200,
-                          margin: const EdgeInsets.only(bottom: 24),
-                          child: Image.asset(
-                            'assets/Logo.png',
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                        TextField(
-                          controller: _email,
-                          keyboardType: TextInputType.emailAddress,
-                          enableSuggestions: false,
-                          decoration: inputDecoration('Enter your email'),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _password,
-                          obscureText: true,
-                          enableSuggestions: false,
-                          decoration: inputDecoration('Enter your password'),
-                        ),
-                        const SizedBox(height: 10),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () async {
-                              if (_email.text.isNotEmpty) {
-                                await FirebaseAuth.instance
-                                    .sendPasswordResetEmail(
-                                      email: _email.text.trim(),
-                                    );
-                                if (!mounted) return;
-                                await showError(
-                                  context,
-                                  "Password reset email sent!",
-                                );
-                              } else {
-                                await showError(
-                                  context,
-                                  "Please enter your email first",
-                                );
-                              }
-                            },
-                            child: const Text(
-                              "Forgot Password?",
-                              style: TextStyle(color: Colors.redAccent),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          height: 50,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(
-                                255,
-                                0,
-                                161,
-                                115,
-                              ),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            onPressed: _login,
-                            child: const Text(
-                              'Login',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                    ),
-                  ),
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height,
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    bottom: 32,
-                  ),
-                  child: SizedBox(
-                    height: 50,
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(
-                          color: Color.fromARGB(255, 0, 161, 115),
-                          width: 2,
-                        ),
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        height: 200,
+                        margin: const EdgeInsets.only(bottom: 24),
+                        child: Image.asset(
+                          'assets/Logo.png',
+                          fit: BoxFit.contain,
                         ),
                       ),
-                      onPressed: () {
-                        Navigator.of(
-                          context,
-                        ).pushNamedAndRemoveUntil(register, (route) => false);
-                      },
-                      child: const Text(
-                        "Create New Account",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                      TextField(
+                        controller: _email,
+                        keyboardType: TextInputType.emailAddress,
+                        enableSuggestions: false,
+                        decoration: inputDecoration('Enter your email'),
+                      ),
+                      const SizedBox(height: 16),
+                      passwordField(controller: _password),
+                      const SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () async {
+                            if (_email.text.isNotEmpty) {
+                              await FirebaseAuth.instance
+                                  .sendPasswordResetEmail(
+                                    email: _email.text.trim(),
+                                  );
+                              if (!mounted) return;
+                              await showError(
+                                context,
+                                "Password reset email sent!",
+                              );
+                            } else {
+                              await showError(
+                                context,
+                                "Please enter your email first",
+                              );
+                            }
+                          },
+                          child: const Text(
+                            "Forgot Password?",
+                            style: TextStyle(color: Colors.redAccent),
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              0,
+                              161,
+                              115,
+                            ),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: _login,
+                          child: const Text(
+                            'Login',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      SizedBox(
+                        height: 50,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                              color: Color.fromARGB(255, 0, 161, 115),
+                              width: 2,
+                            ),
+                            backgroundColor: Colors.transparent,
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(register);
+                          },
+                          child: const Text(
+                            "Create New Account",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             );
           },
         ),

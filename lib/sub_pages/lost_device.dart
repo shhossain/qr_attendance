@@ -146,9 +146,9 @@ class _LostDeviceState extends State<LostDevice> {
                 children: [
                   TextField(
                     controller: _email,
-                    decoration: const InputDecoration(labelText: "Email"),
                     keyboardType: TextInputType.emailAddress,
-                    enableSuggestions: true,
+                    enableSuggestions: false,
+                    decoration: const InputDecoration(labelText: "Email"),
                   ),
                   const SizedBox(height: 16),
                   TextField(
